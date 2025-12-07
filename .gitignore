@@ -1,1 +1,4 @@
 ./dev-file-storage/
+.settings
+src/main/resources/application.properties
+target
