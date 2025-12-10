@@ -68,6 +68,7 @@ File storage options (persistent storage):
    - Do not bake the volume into the Docker image
 
 3. **Volume setup**
+
    ```yaml
    volumes:
      uploads:
@@ -125,4 +126,3 @@ File storage options (persistent storage):
 ---
 
 This guide gives you a **solid blueprint** to code your File Upload Management API from scratch. You can use this to start coding and later enhance it for scaling and multiple clients.
-
