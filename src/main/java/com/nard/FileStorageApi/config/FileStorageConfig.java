@@ -1,16 +1,16 @@
 package com.nard.FileStorageApi.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-@Component
+@Configuration
 @ConfigurationProperties(prefix = "file")
-public class FileStorage {
+public class FileStorageConfig {
 
   // Matches file.root-storage
   private String rootStorage;
