@@ -6,18 +6,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.nard.FileStorageApi.config.FileStorage;
+import com.nard.FileStorageApi.config.FileStorageConfig;
 
 @SpringBootTest
 public class FileStorageConfigTest {
 
   @Autowired
-  private FileStorage fileStorage;
+  private FileStorageConfig fileStorageConfig;
 
   @Test
   void testFileStorageConfig() {
-    assertEquals("/home/nard/myProj/FileStorageApi/dev_file", fileStorage.getRootStorage());
-    assertEquals("50MB", fileStorage.getUploadMaxSize());
+    assertEquals("/home/nard/myProj/FileStorageApi/dev_file", fileStorageConfig.getRootStorage());
+    assertEquals("50MB", fileStorageConfig.getUploadMaxSize());
   }
 
 }

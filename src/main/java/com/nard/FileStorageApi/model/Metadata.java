@@ -1,6 +1,7 @@
 package com.nard.FileStorageApi.model;
 
-import org.springframework.beans.factory.annotation.Value;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -16,16 +17,14 @@ import lombok.Setter;
 @Entity
 public class Metadata {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long fileID;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private long fileID;
 
-	// * Save files to `./<base-path>/<API_CLIENT_ID>/<Category>/`
-	private String uploadedAt; // full filepath
+  private Long clientId; // api consumers client id
+  private String originalFileName; // orignal name of the file
+  private String storagePath;// * Save files to `./<base-path>/<API_CLIENT_ID>/<appName>/<appName>/filename`
+  private LocalDateTime uploadedAt = LocalDateTime.now(); // date and time
+  private String uploadedBy; // clients/consumers uploader or their application's user that uploaded the file
 
-	private int clientId;// <API_CLIENT_ID> // the applciation that will use this api service
-
-	private String category;
-
-	private String fileName; // orignal name of the file
 }
