@@ -7,6 +7,9 @@ import com.nard.FileStorageApi.model.Client;
 
 @Repository
 public interface ClientsRepository extends JpaRepository<Client, Long> {
+
+  Client findByClientId(Long ClientId);
+
   Client findByApiKey(String apiKey);
 
 }

@@ -19,7 +19,7 @@ public class Metadata {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private long fileID;
+  private long fileId;
 
   private Long clientId; // api consumers client id
   private String originalFileName; // orignal name of the file

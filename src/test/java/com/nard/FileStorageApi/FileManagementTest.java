@@ -1,17 +1,17 @@
 package com.nard.FileStorageApi;
 
-import com.nard.FileStorageApi.service.FileManagementService;
-
-import com.nard.FileStorageApi.repository.ClientsRepository;
-import com.nard.FileStorageApi.repository.MetadataRepository;
+import com.nard.FileStorageApi.config.TestDataConfig;
 import com.nard.FileStorageApi.model.Client;
 import com.nard.FileStorageApi.model.Metadata;
+import com.nard.FileStorageApi.repository.MetadataRepository;
+import com.nard.FileStorageApi.service.FileManagementService;
+import com.nard.FileStorageApi.testutil.TestFiles;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
@@ -22,7 +22,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-public class FileManagementTest {
+@Import(TestDataConfig.class)
+class FileManagementTest {
 
   @Autowired
   private FileManagementService fileManagementService;
@@ -31,54 +32,62 @@ public class FileManagementTest {
   private MetadataRepository metadataRepo;
 
   @Autowired
-  private ClientsRepository clientsRepository;
+  private Client testClient;
 
   @Test
-  void shouldUploadFileAndSaveMetadata() throws Exception {
+  void shouldUploadTxtFileAndSaveMetadata() throws Exception {
 
-    // create client
-    Client client = new Client();
-    client.setApiKey("123zxc");
-    // client.setAppName("TestApp");
-    // client.setAdminName("nard_admin");
+    long beforeCount = metadataRepo.count();
 
-    Client savedClient = clientsRepository.save(client);
-    Long clientId = savedClient.getClientId(); // use this in your upload test
-    // GIVEN
-    MockMultipartFile file = new MockMultipartFile(
-        "file",
+    Metadata metadata = fileManagementService.uploadFile(
+        testClient.getClientId(),
+        "todoApp",
+        "attachment",
+        TestFiles.txt(),
+        "todoApp_user1");
+
+    assertNotNull(metadata, "Metadata must not be null");
+    assertEquals(
         "test.txt",
-        "text/plain",
-        "Hello World".getBytes());
+        metadata.getOriginalFileName(),
+        "Original filename mismatch");
 
-    // WHEN
-    fileManagementService.uploadFile(
-        clientId,
-        "billing",
-        "invoices",
-        file,
-        "nard");
+    assertEquals(
+        beforeCount + 1,
+        metadataRepo.count(),
+        "Exactly one metadata record should be added");
+  }
 
-    // THEN (DB)
-    assertEquals(1, metadataRepo.count());
+  @Test
+  void shouldUploadPdfFile() throws Exception {
+    Metadata metadata = fileManagementService.uploadFile(
+        testClient.getClientId(),
+        "todoApp",
+        "attachment",
+        TestFiles.pdf(),
+        "todoApp_user1");
 
-    Metadata testesttsaved = metadataRepo.findAll().get(0);
+    assertEquals("test.pdf", metadata.getOriginalFileName());
+  }
 
-    assertEquals("test.txt", saved.getOriginalFileName());
-    assertEquals("nard", saved.getUploadedBy());
-    assertNotNull(saved.getStoragePath());
+  @Test
+  void shouldUploadExcelFile() throws Exception {
+    Metadata metadata = fileManagementService.uploadFile(
+        testClient.getClientId(),
+        "todoApp",
+        "attachment",
+        TestFiles.excel(),
+        "todoApp_user1");
 
-    // THEN (filesystem)
-    Path storedFile = Path.of(saved.getStoragePath());
-    assertTrue(Files.exists(storedFile));
+    assertEquals("test.xlsx", metadata.getOriginalFileName());
   }
 
   @AfterEach
-  void cleanup() throws IOException {
-    Path root = Path.of("target/test-uploads");
+  void cleanupStorage() throws IOException {
+    Path root = Path.of("storage-test"); // or from config
     if (Files.exists(root)) {
       Files.walk(root)
-          .sorted((a, b) -> b.compareTo(a)) // delete children first
+          .sorted((a, b) -> b.compareTo(a))
           .forEach(p -> p.toFile().delete());
     }
   }

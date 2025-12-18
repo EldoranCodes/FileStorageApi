@@ -33,8 +33,9 @@ public class FileManagementService {
   private FileStorageConfig fileStorageConfig;
 
   // upload single file
-  public void uploadFile(Long clientId, String appName, String module,
+  public Metadata uploadFile(Long clientId, String appName, String module,
       MultipartFile originalFile, String uploadedBy) {
+    Metadata savedFileMetadata = null;
 
     // FileUploadResponse fileUploadResponse = new FileUploadResponse(false, "",
     // null);
@@ -58,25 +59,22 @@ public class FileManagementService {
     } catch (IllegalStateException | IOException e) {
       System.err.println("Failed to save file: " + e.getMessage());
       e.printStackTrace();
-
       // TODO: return a failed Uplaod Response then dont save inthe database
     }
 
     if (metadata.getStoragePath() != null && !metadata.getStoragePath().isBlank()) {
-
       // 3. set uploadedby
       metadata.setUploadedBy(uploadedBy);
       // 4. save the metadata in db and return a response
       try {
-        metadataRepo.save(metadata);
+        savedFileMetadata = metadataRepo.save(metadata);
       } catch (Exception e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
       }
     }
 
-    // retrun the metadata
-    // return fileUploadResponse;
+    return savedFileMetadata;
   }
 
   private Path getStoragePath(MultipartFile originalFile, String destinationFilePath) {

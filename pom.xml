@@ -43,11 +43,11 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-<dependency>
-    <groupId>commons-io</groupId>
-    <artifactId>commons-io</artifactId>
-    <version>2.15.1</version> <!-- Use the latest version -->
-</dependency>
+    <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.15.1</version> <!-- Use the latest version -->
+    </dependency>
 
 		<dependency>
 			<groupId>org.postgresql</groupId>
@@ -64,11 +64,6 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- <dependency> -->
-		<!-- 	<groupId>com.h2database</groupId> -->
-		<!-- 	<artifactId>h2</artifactId> -->
-		<!-- 	<version>2.4.240</version> -->
-		<!-- </dependency> -->
 	</dependencies>
 
 	<build>
@@ -96,8 +91,20 @@
 						</exclude>
 					</excludes>
 				</configuration>
-			</plugin>
-		</plugins>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.2.5</version>
+        <configuration>
+          <systemPropertyVariables>
+            <user.timezone>Asia/Singapore</user.timezone>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+
+    </plugins>
 	</build>
 
 </project>
