@@ -16,7 +16,7 @@ public class FileStorageConfigTest {
 
   @Test
   void testFileStorageConfig() {
-    assertEquals("/home/nard/myProj/FileStorageApi/dev_file", fileStorage.getRootStorage());
+    assertEquals("/var/lib/fileStorageApi", fileStorage.getRootStorage());
     assertEquals("50MB", fileStorage.getUploadMaxSize());
   }
 
