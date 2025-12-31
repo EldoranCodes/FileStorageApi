@@ -2,27 +2,36 @@ package com.nard.FileStorageApi.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.annotation.Generated;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@NoArgsConstructor
 @Entity
-@Setter
+@Table(name = "upload_batches")
+@NoArgsConstructor
 @Getter
-public class users {
+@Setter
+public class UploadBatch {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private long id;
+  private Long id;
 
-  private String name; // applciation name
-  private String status;
+  @Column(name = "created_at")
   private LocalDateTime createdAt;
+
+  private String status; // PENDING, SUCCESS, FAILED
+
+  @ManyToOne
+  @JoinColumn(name = "users_id")
+  private User user;
 
 }
