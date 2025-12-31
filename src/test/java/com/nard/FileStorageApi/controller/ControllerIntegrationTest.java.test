@@ -1,0 +1,204 @@
+package com.nard.FileStorageApi.controller;
+
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.io.ByteArrayInputStream;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.test.web.servlet.MockMvc;
+
+import com.nard.FileStorageApi.dto.BatchFilesResponseDto;
+import com.nard.FileStorageApi.dto.DeleteResponseDto;
+import com.nard.FileStorageApi.dto.FileMetadataDto;
+import com.nard.FileStorageApi.dto.UploadResponseDto;
+import com.nard.FileStorageApi.interceptor.ApiKeyInterceptor;
+import com.nard.FileStorageApi.model.Account;
+import com.nard.FileStorageApi.model.StoredFile;
+import com.nard.FileStorageApi.model.UploadBatch;
+import com.nard.FileStorageApi.model.User;
+import com.nard.FileStorageApi.service.ApiKeyService;
+import com.nard.FileStorageApi.service.BatchService;
+import com.nard.FileStorageApi.service.FileService;
+import com.nard.FileStorageApi.service.UploadService;
+
+@WebMvcTest(controllers = {UploadController.class, BatchController.class, FileController.class})
+class ControllerIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private UploadService uploadService;
+
+    @MockBean
+    private BatchService batchService;
+
+    @MockBean
+    private FileService fileService;
+
+    @MockBean
+    private ApiKeyService apiKeyService;
+
+    @MockBean
+    private ApiKeyInterceptor apiKeyInterceptor;
+
+    private User testUser;
+    private String validApiKey;
+    private String hashedApiKey;
+
+    @BeforeEach
+    void setUp() {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        validApiKey = "test-api-key-123";
+        hashedApiKey = encoder.encode(validApiKey);
+
+        Account account = new Account();
+        account.setId(1L);
+        account.setName("Test Account");
+
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setName("test-user");
+        testUser.setStatus("ACTIVE");
+        testUser.setAccount(account);
+        testUser.setApiKey(hashedApiKey);
+
+        // Mock interceptor to allow requests
+        when(apiKeyInterceptor.preHandle(any(), any(), any())).thenAnswer(invocation -> {
+            HttpServletRequest request = invocation.getArgument(0);
+            request.setAttribute("authenticatedUser", testUser);
+            return true;
+        });
+    }
+
+    @Test
+    void testUploadFiles_Success() throws Exception {
+        // Arrange
+        MockMultipartFile file = new MockMultipartFile(
+            "files",
+            "test.txt",
+            MediaType.TEXT_PLAIN_VALUE,
+            "test content".getBytes()
+        );
+
+        FileMetadataDto fileMetadata = FileMetadataDto.builder()
+            .fileId(1L)
+            .originalName("test.txt")
+            .path("users/test-user/uuid-123")
+            .uuid("uuid-123")
+            .uploadTimestamp(LocalDateTime.now().toString())
+            .build();
+
+        UploadResponseDto response = UploadResponseDto.builder()
+            .batchId(1L)
+            .status("SUCCESS")
+            .files(Arrays.asList(fileMetadata))
+            .build();
+
+        when(uploadService.uploadFiles(eq(testUser), any())).thenReturn(response);
+
+        // Act & Assert
+        mockMvc.perform(multipart("/upload")
+                .file(file)
+                .header("Authorization", "ApiKey " + validApiKey))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.batchId").value(1L))
+            .andExpect(jsonPath("$.status").value("SUCCESS"))
+            .andExpect(jsonPath("$.files[0].originalName").value("test.txt"));
+    }
+
+    @Test
+    void testUploadFiles_MissingApiKey_Unauthorized() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+            "files",
+            "test.txt",
+            MediaType.TEXT_PLAIN_VALUE,
+            "test content".getBytes()
+        );
+
+        mockMvc.perform(multipart("/upload")
+                .file(file))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testGetBatchFiles_Success() throws Exception {
+        // Arrange
+        FileMetadataDto fileMetadata = FileMetadataDto.builder()
+            .fileId(1L)
+            .originalName("test.txt")
+            .path("users/test-user/uuid-123")
+            .uuid("uuid-123")
+            .uploadTimestamp(LocalDateTime.now().toString())
+            .build();
+
+        BatchFilesResponseDto response = BatchFilesResponseDto.builder()
+            .batchId(1L)
+            .status("SUCCESS")
+            .files(Arrays.asList(fileMetadata))
+            .build();
+
+        when(batchService.getBatchFiles(1L, testUser)).thenReturn(response);
+
+        // Act & Assert
+        mockMvc.perform(get("/files/1")
+                .header("Authorization", "ApiKey " + validApiKey))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.batchId").value(1L))
+            .andExpect(jsonPath("$.files[0].originalName").value("test.txt"));
+    }
+
+    @Test
+    void testGetBatchFiles_NotFound() throws Exception {
+        when(batchService.getBatchFiles(999L, testUser))
+            .thenThrow(new IllegalArgumentException("Batch not found: 999"));
+
+        mockMvc.perform(get("/files/999")
+                .header("Authorization", "ApiKey " + validApiKey))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testDeleteBatch_Success() throws Exception {
+        DeleteResponseDto response = DeleteResponseDto.builder()
+            .success(true)
+            .message("Batch and all files deleted successfully")
+            .build();
+
+        when(batchService.deleteBatch(1L, testUser)).thenReturn(response);
+
+        mockMvc.perform(delete("/delete/batch/1")
+                .header("Authorization", "ApiKey " + validApiKey))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    void testDeleteFile_Success() throws Exception {
+        DeleteResponseDto response = DeleteResponseDto.builder()
+            .success(true)
+            .message("File deleted successfully")
+            .build();
+
+        when(fileService.deleteFile(1L, testUser)).thenReturn(response);
+
+        mockMvc.perform(delete("/delete/file/1")
+                .header("Authorization", "ApiKey " + validApiKey))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true));
+    }
+}
