@@ -10,10 +10,10 @@ import lombok.Setter;
 @Setter
 @Component
 @ConfigurationProperties(prefix = "file")
-public class FileStorage {
+public class FileStorageProperty {
 
-  // Matches file.root-storage
-  private String rootStorage;
+  // Matches file.upload-dir in applicaiton properties
+  private String uploadDir;
 
   // Matches file.upload.max-size
   private String uploadMaxSize;
