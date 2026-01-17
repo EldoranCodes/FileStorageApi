@@ -2,6 +2,9 @@ package com.nard.FileStorageApi.dto;
 
 import java.util.Map;
 
+import lombok.Getter;
+
+@Getter
 public class ApiResponse {
 
   private boolean success;

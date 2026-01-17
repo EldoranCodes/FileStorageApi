@@ -2,7 +2,6 @@ package com.nard.FileStorageApi.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.annotation.Generated;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -24,7 +23,7 @@ public class ApiKey {
   private long id;
 
   private String apiKey;
-  private String appName; // for owners applciation indecated to
+  private String appName; // for owners applciation
   private Long owner; // applciation name
 
   private LocalDateTime createdAt;

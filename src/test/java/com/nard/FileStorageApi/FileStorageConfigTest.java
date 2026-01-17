@@ -16,7 +16,7 @@ public class FileStorageConfigTest {
 
   @Test
   void testFileStorageConfig() {
-    assertEquals("/uploads", fileStorageProperty.getUploadDir());
+    assertEquals("uploads", fileStorageProperty.getUploadDir());
 
     assertEquals("50MB", fileStorageProperty.getUploadMaxSize());
   }

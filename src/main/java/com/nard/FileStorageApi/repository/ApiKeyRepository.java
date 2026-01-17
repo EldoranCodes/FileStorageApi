@@ -10,4 +10,8 @@ public interface ApiKeyRepository extends JpaRepository<ApiKey, Long> {
 
   Optional<ApiKey> findById(Long id);
 
+  Optional<ApiKey> findByApiKey(String key);
+
+  boolean existsByApiKey(String key);
+
 }
